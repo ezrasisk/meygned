@@ -1,0 +1,28 @@
+[package]
+name = "meygned"
+version = "0.1.0"
+edition = "2021"
+description = "Resolve and interact with Meygned-hosted content on .kas domains"
+default-run = "meygned"
+
+[[bin]]
+name = "meygned"
+path = "src/main.rs"
+
+[dependencies]
+meygned-core  = { path = "../meygned-core" }
+meygned-kaspa = { path = "../meygned-kaspa" }
+meygned-iroh  = { path = "../meygned-iroh" }
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Async
+tokio = { version = "1", features = ["full"] }
+
+# Logging — writes to stderr only, never stdout
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }
