@@ -1,0 +1,28 @@
+[package]
+name = "meygned-iroh"
+version = "0.1.0"
+edition = "2021"
+description = "Iroh node management and content fetching for Meygned"
+
+[dependencies]
+meygned-core = { path = "../meygned-core" }
+
+# Iroh — pinned to stable 0.35 line
+# Do not use ^ ranges here — the 0.36+ / 0.9x canary series has breaking API changes
+iroh        = "=0.35.0"
+iroh-blobs  = "=0.35.0"
+iroh-docs   = "=0.35.0"
+iroh-gossip = "=0.35.0"
+
+# Error handling
+thiserror = "1"
+
+# Async
+tokio = { version = "1", features = ["full"] }
+
+# Logging
+tracing = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }
+tracing-subscriber = "0.3"
