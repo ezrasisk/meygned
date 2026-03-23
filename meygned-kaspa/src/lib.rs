@@ -1,63 +1,72 @@
 //! # meygned-kaspa
 //!
-//! Kaspa RPC client, payload parser, and indexer state machine for Meygned.
+//! KNS domain resolution and Meygned payload scanning for Meygned.
 //!
-//! ## Responsibilities
-//! - Connect to a local Kaspa full node via gRPC
-//! - Scan transactions for valid [`KaspaPayload`] data
-//! - Maintain a local name registry index using redb
-//! - Answer name resolution queries for the resolver pipeline
+//! ## What this crate does (Path A — built on KNS)
+//!
+//! 1. Queries the KNS public API to resolve a `.kas` name → owner address
+//! 2. Scans the owner's Kaspa transactions for a valid `MeygnedPayload`
+//! 3. Validates that the payload signer matches the KNS owner (anti-hijack)
+//! 4. Returns the `ContentRef` for `meygned-iroh` to fetch
+//!
+//! ## What this crate does NOT do
+//! - Name registration (handled by KNS)
+//! - Ownership tracking (handled by KNS)
+//! - Running a Kaspa node (uses public REST APIs for MVP)
 //!
 //! ## Usage
 //!
 //! ```rust,no_run
-//! use meygned_kaspa::{KaspaConfig, KaspaNetwork, open_store, Indexer};
-//! use std::path::PathBuf;
+//! use meygned_kaspa::{resolve_name, KnsClient, PayloadScanner};
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let config = KaspaConfig {
-//!         rpc_url: "grpc://127.0.0.1:16110".to_string(),
-//!         db_path: PathBuf::from("meygned-index.redb"),
-//!         network: KaspaNetwork::Mainnet,
-//!     };
+//!     let kns = KnsClient::new();
+//!     let scanner = PayloadScanner::new();
 //!
-//!     let store = open_store(&config.db_path).unwrap();
-//!     let indexer = Indexer::new(store);
+//!     // Full resolution: KNS lookup + payload scan
+//!     let (kns_record, scan_result) = resolve_name(&kns, &scanner, "ezra.kas")
+//!         .await
+//!         .unwrap();
 //!
-//!     // Resolve a name after indexing
-//!     let record = indexer.store().get_name("ezra.p2phost").unwrap();
+//!     println!("Owner: {}", kns_record.owner);
+//!     println!("Content: {:?}", scan_result.payload.content_ref);
 //! }
 //! ```
 
 pub mod error;
-pub mod indexer;
-pub mod parser;
-pub mod rpc;
-pub mod store;
-
-// ---------------------------------------------------------------------------
-// Re-exports — public API surface
-// ---------------------------------------------------------------------------
+pub mod kns;
+pub mod scanner;
 
 pub use error::KaspaError;
-pub use indexer::{IndexerTx, Indexer};
-pub use parser::{parse_payload, CURRENT_PAYLOAD_VERSION};
-pub use rpc::{KaspaConfig, KaspaNetwork, KaspaRpcClient, RawBlock, run_catchup, run_live_stream};
-pub use store::{NameRecord, Store};
+pub use kns::{KnsClient, KNS_API_BASE};
+pub use scanner::{PayloadScanResult, PayloadScanner, KASPA_REST_BASE};
 
-// ---------------------------------------------------------------------------
-// Convenience constructors
-// ---------------------------------------------------------------------------
+use meygned_core::{KnsName, KnsRecord};
 
-/// Open (or create) the redb index store at the path specified in `config`.
-pub fn open_store(db_path: &std::path::Path) -> Result<Store, KaspaError> {
-    Store::open(db_path)
-}
+/// Convenience function: resolve a `.kas` name end-to-end.
+///
+/// 1. Parses and validates the name
+/// 2. Queries KNS for the current owner
+/// 3. Scans the owner's transactions for a MeygnedPayload
+///
+/// Returns `(KnsRecord, PayloadScanResult)` on success.
+pub async fn resolve_name(
+    kns: &KnsClient,
+    scanner: &PayloadScanner,
+    name: &str,
+) -> Result<(KnsRecord, PayloadScanResult), KaspaError> {
+    // Parse and validate
+    let kns_name = KnsName::parse(name)
+        .map_err(|e| KaspaError::Internal(e.to_string()))?;
 
-/// Resolve a name from the local index, mapping `None` to a `NameNotFound` error.
-pub fn resolve_name(store: &Store, name: &str) -> Result<NameRecord, KaspaError> {
-    store
-        .get_name(name)?
-        .ok_or_else(|| KaspaError::NameNotFound(name.to_string()))
+    // Step 1: KNS owner lookup
+    let kns_record = kns.get_domain(&kns_name.label).await?;
+
+    // Step 2: Meygned payload scan
+    let scan_result = scanner
+        .find_payload(&kns_record.owner, &kns_name.full())
+        .await?;
+
+    Ok((kns_record, scan_result))
 }
