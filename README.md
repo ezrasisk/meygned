@@ -249,23 +249,23 @@ This project is in active early development. Issues and PRs welcome.
 cargo test --workspace   # run all tests
 cargo clippy --workspace # lint
 ```
-First time setup
-
+## First time setup
+```bash
 meygned wallet create
 meygned wallet address   # fund this address, register it in KNS
-
-Bind content
-
+```
+## Bind content
+```bash
 meygned publish ezra.kas --ticket <iroh-doc-ticket>
 meygned publish ezra.kas --hash <blake3-hex>
 meygned publish ezra.kas --ticket <t> --paywall <tx_id> --paywall-desc "0.1 KAS"
-
-Resolve
-
+```
+## Resolve
+```bash
 meygned resolve ezra.kas
 meygned resolve ezra.kas --json
 meygned info ezra.kas
----
+```
 
 ## License
 
