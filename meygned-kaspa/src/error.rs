@@ -19,6 +19,10 @@ pub enum KaspaError {
     #[error("no Meygned payload found for '{0}'")]
     NoPayloadFound(String),
 
+    // -- Signer derivation --
+    #[error("signer address derivation failed: {0}")]
+    SignerDerivationFailed(String),
+
     // -- Anti-hijack validation --
     #[error("payload signer '{signer}' does not match KNS owner '{owner}' for '{name}'")]
     SignerMismatch {
@@ -43,6 +47,9 @@ impl From<KaspaError> for meygned_core::MeygnedError {
             KaspaError::NoPayloadFound(n) => meygned_core::MeygnedError::NoPayloadFound(n),
             KaspaError::SignerMismatch { name, owner, signer } => {
                 meygned_core::MeygnedError::SignerMismatch { name, owner, signer }
+            }
+            KaspaError::SignerDerivationFailed(e) => {
+                meygned_core::MeygnedError::Internal(format!("signer derivation: {e}"))
             }
             KaspaError::KnsHttp(e) | KaspaError::KaspaHttp(e) => {
                 meygned_core::MeygnedError::Http(e)
