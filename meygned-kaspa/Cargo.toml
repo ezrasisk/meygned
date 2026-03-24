@@ -2,10 +2,14 @@
 name = "meygned-kaspa"
 version = "0.2.0"
 edition = "2021"
-description = "KNS resolution and Meygned payload scanning for Meygned"
+description = "KNS resolution, Meygned payload scanning, and signer verification for Meygned"
 
 [dependencies]
 meygned-core = { path = "../meygned-core" }
+
+# Kaspa address derivation — from rusty-kaspa monorepo
+# Used for converting script_public_key bytes → kaspa:q... addresses
+kaspa-addresses = "0.17"
 
 # HTTP client
 reqwest = { version = "0.12", features = ["json"] }
@@ -14,7 +18,7 @@ reqwest = { version = "0.12", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-# Hex decoding for Kaspa payload bytes
+# Hex decoding for Kaspa payload bytes and script_public_key
 hex = "0.4"
 
 # Error handling
@@ -28,4 +32,4 @@ tracing = "0.1"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full", "test-util"] }
-wiremock = "0.6"       # HTTP mock server for API tests
+wiremock = "0.6"
