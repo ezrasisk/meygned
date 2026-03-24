@@ -233,7 +233,7 @@ Doc resolution uses a three-tier routing strategy: full ticket → node_id dial 
 - [x] Meygned payload scanning + anti-hijack validation
 - [x] Iroh blob and doc content fetching
 - [x] `meygned resolve` CLI with terminal/pipe detection
-- [ ] `meygned publish` — wallet integration for payload inscription
+- [x] `meygned publish` — wallet integration for payload inscription
 - [ ] Paywall access via Igra L2 transaction verification
 - [ ] Persistent Iroh blob store (swap in-memory for on-disk)
 - [ ] Browser extension / local proxy for native `.kas` resolution
@@ -249,7 +249,19 @@ This project is in active early development. Issues and PRs welcome.
 cargo test --workspace   # run all tests
 cargo clippy --workspace # lint
 ```
+# First time setup
+meygned wallet create
+meygned wallet address   # fund this address, register it in KNS
 
+# Bind content
+meygned publish ezra.kas --ticket <iroh-doc-ticket>
+meygned publish ezra.kas --hash <blake3-hex>
+meygned publish ezra.kas --ticket <t> --paywall <tx_id> --paywall-desc "0.1 KAS"
+
+# Resolve
+meygned resolve ezra.kas
+meygned resolve ezra.kas --json
+meygned info ezra.kas
 ---
 
 ## License
