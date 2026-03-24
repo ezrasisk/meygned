@@ -31,9 +31,35 @@ pub enum KaspaError {
         signer: String,
     },
 
-    // -- Payload parsing --
+    // -- Payload --
     #[error("payload parse error: {0}")]
     PayloadParse(String),
+
+    #[error("payload too large: {size} bytes (max {max})")]
+    PayloadTooLarge { size: usize, max: usize },
+
+    // -- Wallet --
+    #[error("wallet file not found: '{0}' — run `meygned wallet create` to create one")]
+    WalletNotFound(String),
+
+    #[error("failed to open wallet: {0}")]
+    WalletOpen(String),
+
+    #[error("account index {0} not found in wallet")]
+    AccountNotFound(u32),
+
+    // -- RPC / node --
+    #[error("failed to connect to Kaspa node at '{0}': {1}")]
+    RpcConnect(String, String),
+
+    #[error("transaction signing failed: {0}")]
+    Signing(String),
+
+    #[error("transaction broadcast failed: {0}")]
+    Broadcast(String),
+
+    #[error("timeout: {0}")]
+    Timeout(String),
 
     // -- Catch-all --
     #[error("internal error: {0}")]
