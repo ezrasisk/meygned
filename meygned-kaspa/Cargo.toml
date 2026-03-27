@@ -8,11 +8,11 @@ description = "KNS resolution, payload scanning, signer verification, and publis
 meygned-core = { path = "../meygned-core" }
 
 # Kaspa wallet — from rusty-kaspa monorepo
-kaspa-wallet-core  = "0.17"
-kaspa-wallet-keys  = "0.17"
-kaspa-wrpc-client  = "0.17"
-kaspa-addresses    = "0.17"
-kaspa-bip32        = "0.17"
+kaspa-wallet-core  = "0.15.0"
+kaspa-wallet-keys  = "0.15.0"
+kaspa-wrpc-client  = "0.15.0"
+kaspa-addresses    = "0.15.0"
+kaspa-bip32        = "0.15.0"
 
 # HTTP client (resolve + scanner)
 reqwest = { version = "0.12", features = ["json"] }
